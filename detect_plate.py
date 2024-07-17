@@ -16,7 +16,7 @@ coco_model = YOLO('yolov8n.pt')
 license_plate_detector = YOLO('C:/Users/Jesser/Desktop/oo/models/license_plate_detector.pt')
 
 # Load video from camera (change 0 to the appropriate camera index if you have multiple)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 vehicles = [2, 3, 5, 7]
 
@@ -86,10 +86,10 @@ while True:
                 }
 
         # Draw bounding boxes and text on the frame (uncomment if needed)
-        # cv2.rectangle(frame, (int(xcar1), int(ycar1)), (int(xcar2), int(ycar2)), (0, 255, 0), 2)
-        # cv2.putText(frame, f'Car {car_id}', (int(xcar1), int(ycar1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        cv2.rectangle(frame, (int(xcar1), int(ycar1)), (int(xcar2), int(ycar2)), (0, 255, 0), 2)
+        cv2.putText(frame, f'Car {car_id}', (int(xcar1), int(ycar1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-        # cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
+        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
 
     # Display the frame
     cv2.imshow('Video', frame)
@@ -98,6 +98,24 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Release video capture and close OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
+
+# Save results to a CSV file
+with open('license_plate_results.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['Frame Number', 'Car ID', 'Car BBox', 'License Plate BBox', 'License Plate Text', 'BBox Score', 'Text Score'])
+
+    for frame_nmr, cars in results.items():
+        for car_id, data in cars.items():
+            license_plate = data['license_plate']
+            if license_plate['bbox_score'] > 0.8:  # Example threshold for good score
+                writer.writerow([
+                    frame_nmr,
+                    car_id,
+                    data['car']['bbox'],
+                    license_plate['bbox'],
+                    license_plate['text'],
+                    license_plate['bbox_score'],
+                    license_plate['text_score']
+                ])
